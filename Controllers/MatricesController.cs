@@ -94,7 +94,7 @@ namespace MatrixForm.Controllers
 
             return View(obj);
         }
-
+    
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -140,31 +140,13 @@ namespace MatrixForm.Controllers
 
         }
 
-        /*        [HttpPost]
-                [ValidateAntiForgeryToken]
-                public async Task<IActionResult> MoveUp(Matrix obj)
-                {
-                    if (null == obj)
-                    {
-                        return RedirectToAction(nameof(Error), new { message = "Id mismatch" });
-                    }
-                    try
-                    {
-                        await _matrixService.MoveUpAsync(obj);
-                        return RedirectToAction(nameof(Index));
-                    }
-                    catch (NotFoundException e)
-                    {
-                        return RedirectToAction(nameof(Error), new { message = e.Message });
-                    }
-                    catch (DbConcurrencyException e)
-                    {
-                        return RedirectToAction(nameof(Error), new { message = e.Message });
-                    }
-                }*/
+        public IActionResult Error(string message)
+        {
+            var viewModel = new ErrorViewModel { Message = message, RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier };
 
-/*        [HttpPost]
-        [ValidateAntiForgeryToken]
+            return View(viewModel);
+        }
+
         public async Task<IActionResult> MoveUp(int? id)
         {
             if (id == null)
@@ -172,20 +154,30 @@ namespace MatrixForm.Controllers
                 return RedirectToAction(nameof(Error), new { message = "Id not provided" });
             }
 
-            var obj = await _matrixService.FindByIdAsync(id.Value);
-            if (obj == null)
+            Matrix obj = await _matrixService.FindByIdAsync(id.Value);
+            
+            if (obj.Order > 1)
             {
-                return RedirectToAction(nameof(Error), new { message = "Id not found" });
+                await _matrixService.MoveSubtractAsync(id.Value);
             }
-            await _matrixService.MoveUpAsync(obj);
             return RedirectToAction(nameof(Index));
-        }*/
+        }
 
-        public IActionResult Error(string message)
+        public async Task<IActionResult> MoveDown(int? id)
         {
-            var viewModel = new ErrorViewModel { Message = message, RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier };
+            if (id == null)
+            {
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" });
+            }
 
-            return View(viewModel);
+            Matrix obj = await _matrixService.FindByIdAsync(id.Value);
+            int maxOrder = await _matrixService.OrderInclude();
+            
+            if (obj.Order < maxOrder)
+            {
+                await _matrixService.MoveAddAsync(id.Value);
+            }
+            return RedirectToAction(nameof(Index));
         }
     }
 }

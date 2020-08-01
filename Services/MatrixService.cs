@@ -26,7 +26,7 @@ namespace MatrixForm.Services
 
         public async Task InsertAsync(Matrix matrix)
         {
-            matrix.SetOrder(OrderInclude() + 1);
+            matrix.SetOrder(await OrderInclude() + 1);
             matrix.SetDateCreated(DateTime.Now);
             matrix.SetDateModified(DateTime.Now);
             _context.Add(matrix);
@@ -34,9 +34,9 @@ namespace MatrixForm.Services
 
         }
 
-        private int OrderInclude()
+        public async Task<int> OrderInclude()
         {
-            var obj = _context.Matrix.OrderBy(x => x.Order).LastOrDefault();
+            var obj = await _context.Matrix.OrderBy(x => x.Order).LastOrDefaultAsync();
             return obj.Order;
 
         }
@@ -80,25 +80,21 @@ namespace MatrixForm.Services
             
         }
 
-        public async Task MoveUpAsync(Matrix obj)
+        public async Task MoveSubtractAsync(int objId)
         {
-            if (!await _context.Matrix.AnyAsync(x => x.Id == obj.Id))
+            if (!await _context.Matrix.AnyAsync(x => x.Id == objId))
             {
                 throw new NotFoundException("I");
             }
             try
             {
-                List<Matrix> result = await _context.Matrix.OrderBy(x => x.Order).ToListAsync();
-                int maxOrder = OrderInclude();
-
-                Matrix matrix = await _context.Matrix.FirstOrDefaultAsync(x => x.Order == obj.Order);
-
-                obj.SetOrder(obj.Order -1);
-                matrix.SetOrder(matrix.Order +1);
-
+                Matrix obj = await FindByIdAsync(objId);
+                Matrix obj2 = await _context.Matrix.FirstOrDefaultAsync(x => x.Order == (obj.Order - 1));
+                obj.SetOrder(obj.Order - 1);
                 _context.Update(obj);
                 await _context.SaveChangesAsync();
-                _context.Update(matrix);
+                obj2.SetOrder(obj.Order + 1);
+                _context.Update(obj2);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException e)
@@ -107,6 +103,27 @@ namespace MatrixForm.Services
             }
         }
 
-        
+        public async Task MoveAddAsync(int objId)
+        {
+            if (!await _context.Matrix.AnyAsync(x => x.Id == objId))
+            {
+                throw new NotFoundException("I");
+            }
+            try
+            {
+                Matrix obj = await FindByIdAsync(objId);
+                Matrix obj2 = await _context.Matrix.FirstOrDefaultAsync(x => x.Order == (obj.Order + 1));
+                obj.SetOrder(obj.Order + 1);
+                _context.Update(obj);
+                await _context.SaveChangesAsync();
+                obj2.SetOrder(obj.Order - 1);
+                _context.Update(obj2);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException e)
+            {
+                throw new DbConcurrencyException(e.Message);
+            }
+        }
     }
 }

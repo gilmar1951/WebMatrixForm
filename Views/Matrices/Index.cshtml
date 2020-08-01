@@ -51,13 +51,13 @@
             <td>
                 @Html.DisplayFor(modelItem => item.DateModified)
             </td>
-        <td>
-            <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-            <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-            <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-@*            <a asp-action="MoveUp" asp-route-id="@item.Id">Up</a> |
-            <a asp-action="MoveDown" asp-route-id="@item.Id">Down</a>*@
-        </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a> |
+                <a asp-action="MoveUp" asp-route-id="@item.Id">Up</a> |
+                <a asp-action="MoveDown" asp-route-id="@item.Id">Down</a>
+            </td>
         </tr>
 }
     </tbody>
